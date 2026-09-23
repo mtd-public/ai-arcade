@@ -1,0 +1,17 @@
+{
+  "name": "ai-arcade",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A static arcade site linking browser games built with AI. No dependencies.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/serve.mjs --no-watch",
+    "check": "node scripts/check.mjs",
+    "images": "node tools/make-images.mjs"
+  }
+}
