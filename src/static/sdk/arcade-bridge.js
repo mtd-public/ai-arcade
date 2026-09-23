@@ -11,6 +11,10 @@
  *   ArcadeBridge.mode              'solo' | 'copilot' | 'coop', from ?arcade_mode=
  *   ArcadeBridge.ready()           the game has loaded and can take input
  *   ArcadeBridge.score(1234)       a run finished with this score
+ *   ArcadeBridge.gameOver({ score }) the run is over (lost, or finished). Call it
+ *                                  when the game-over screen shows: Discover mode
+ *                                  ends the turn and asks for a review. A score
+ *                                  here is recorded too, so skip score() then.
  *   ArcadeBridge.achievement(id)   an achievement unlocked (ids from the catalog)
  *   ArcadeBridge.state({ ... })    a small snapshot of game state, for the AI
  *   ArcadeBridge.on(type, fn)      messages from the arcade: 'hint' for the
@@ -46,6 +50,10 @@
     },
     score: function (value) {
       if (typeof value === 'number' && isFinite(value)) send('score', { score: Math.round(value), mode: mode })
+    },
+    gameOver: function (details) {
+      var score = details && details.score
+      send('game-over', { score: typeof score === 'number' && isFinite(score) ? Math.round(score) : null, mode: mode })
     },
     achievement: function (id) {
       if (id) send('achievement', { id: String(id) })

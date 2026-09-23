@@ -57,6 +57,21 @@ in `src/static/js/api.js`:
   co-pilot panel and P2 badge are UI scaffolds until a game reports support.
 - Record real gameplay clips (or YouTube links) to replace the sample ones.
 
+## Discover mode
+
+- Add `ArcadeBridge.gameOver()` to each game. Today Discover spots game over
+  with the `gameOver` rules in `src/data/games.mjs`, which look inside the
+  game's page: they break if a game's game-over screen changes, and they only
+  work while the arcade and the games share an origin.
+- Backend: `GET /discover/next` to choose the next game (give new and
+  little-played games a boost), `POST /discover/turns` for turn stats and
+  `POST /games/:slug/reviews` for reviews. The client already calls these
+  when `portal.apiBase` is set.
+- Show discovery stats (recommend rate, average turn length) on game pages
+  and in the community snapshot once there's data.
+- Decide whether Discover gets an ad slot. It has none for now, to keep ads
+  well away from the game area.
+
 ## Testing
 
 - Move the browser test used during development (sorting, search, votes,

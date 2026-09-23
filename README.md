@@ -30,6 +30,19 @@ npm run preview  # serve the current build without watching
 
 Set `embed: false` for a game that shouldn't run inside the page (for example, one that needs pointer lock). It then opens in a new tab instead.
 
+For [Discover mode](#discover-mode), also tell the arcade how to spot the game's game-over screen with a `gameOver` rule (see below).
+
+## Discover mode
+
+[`/discover/`](https://mtd-public.github.io/ai-arcade/discover/) plays one random game at a time. You play until game over, a quick review pops up (recommend or not for me, plus save), and a big **Next channel** button changes the channel, with TV static while the next game tunes in. No repeats until you've seen every game. For now it shuffles the catalog; the hook for choosing games is `api.nextDiscover()` in [`src/static/js/api.js`](src/static/js/api.js), which is where a backend can give new games their airtime later.
+
+The arcade needs to know when a run ends. There are two ways:
+
+- **The Arcade Bridge (for new games).** Add [`sdk/arcade-bridge.js`](src/static/sdk/arcade-bridge.js) to the game and call `ArcadeBridge.gameOver({ score })` when the game-over screen shows. This works wherever the game is hosted.
+- **A `gameOver` rule in the catalog (for games as they are).** In [`src/data/games.mjs`](src/data/games.mjs), give a CSS selector that matches the game-over screen, or its "play again" button, once it's showing, plus an optional text pattern. For example, `gameOver: [{ selector: 'button', text: '^\\s*play again\\s*$' }]`. The arcade can only look inside a game served from the same origin as the arcade, which is true for every game on `mtd-public.github.io` today. If the arcade moves to its own domain, the games need to move with it (a custom domain on the `mtd-public.github.io` site covers all of them) or use the Bridge.
+
+Players can always end a turn themselves with **Next channel**, which asks for the review first. A review also counts as the player's vote, so it feeds the Hot and Top rankings.
+
 ## Project layout
 
 ```

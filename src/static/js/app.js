@@ -307,6 +307,7 @@ const pages = {
   game: () => import('./pages/game.js'),
   submit: () => import('./pages/submit.js'),
   leaderboards: () => import('./pages/leaderboards.js'),
+  discover: () => import('./pages/discover.js'),
 }
 
 pages[document.body.dataset.page]?.()

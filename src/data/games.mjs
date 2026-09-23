@@ -19,6 +19,13 @@
 //   orientation  'portrait' or 'landscape': the shape of the in-page player.
 //   embed        false to skip the in-page player and only link out, for games
 //                that need a whole tab (pointer lock, orientation lock, etc.).
+//   gameOver     How Discover mode spots the end of a run in a game that doesn't
+//                call ArcadeBridge.gameOver() yet: [{ selector, text }], where
+//                selector matches the game-over screen (or its "play again"
+//                button) once it's showing, and text is an optional
+//                case-insensitive pattern its text must match. It can only look
+//                inside games served from the same origin as the arcade (the
+//                same github.io site, or the same custom domain).
 //   accent/tint  Card colours: a strong colour and a pale one.
 //   added        YYYY-MM-DD. Feeds the "New" sort, the "Hot" freshness boost,
 //                and the "New" badge on the three newest games.
@@ -65,6 +72,7 @@ export const games = [
     category: 'driving',
     tags: ['3D', 'Time attack', 'Touch + keyboard'],
     orientation: 'portrait',
+    gameOver: [{ selector: '#screen:not(.hidden) #again' }],
     accent: '#e2475a',
     tint: '#fdecee',
     added: '2026-09-22',
@@ -106,6 +114,7 @@ export const games = [
     category: 'arcade',
     tags: ['3D', 'Physics', 'Touch + keyboard'],
     orientation: 'portrait',
+    gameOver: [{ selector: '#screen:not(.hidden) h1', text: "time'?s\\s*up|free\\s*at\\s*last" }],
     accent: '#b8321f',
     tint: '#fbe9e4',
     added: '2026-09-23',
@@ -144,6 +153,7 @@ export const games = [
     category: 'shooter',
     tags: ['Pixel art', 'Boss fights', 'Landscape'],
     orientation: 'landscape',
+    gameOver: [{ selector: '#over:not(.hidden), #win:not(.hidden)' }],
     accent: '#1f7fc4',
     tint: '#e6f2fb',
     added: '2026-09-23',
@@ -184,6 +194,7 @@ export const games = [
     category: 'sports',
     tags: ['3D', 'Endless', 'Tricks'],
     orientation: 'portrait',
+    gameOver: [{ selector: '#screen:not(.hidden) #again' }],
     accent: '#7a5bd6',
     tint: '#efeafc',
     added: '2026-09-22',
@@ -223,6 +234,7 @@ export const games = [
     category: 'shooter',
     tags: ['3D', 'Boss fights', 'Open world'],
     orientation: 'portrait',
+    gameOver: [{ selector: '#screen-gameover:not(.hidden), #screen-victory:not(.hidden)' }],
     accent: '#5b46c9',
     tint: '#ecebfb',
     added: '2026-09-22',
@@ -258,6 +270,7 @@ export const games = [
     category: 'arcade',
     tags: ['One button', 'Endless', '3D'],
     orientation: 'portrait',
+    gameOver: [{ selector: 'button', text: '^\\s*dive again\\s*$' }],
     accent: '#e8773a',
     tint: '#fdf0e7',
     added: '2026-09-22',
@@ -294,6 +307,7 @@ export const games = [
     category: 'shooter',
     tags: ['Pixel art', 'Endless', 'Boss fights'],
     orientation: 'portrait',
+    gameOver: [{ selector: 'button', text: '^\\s*dive again\\s*$' }],
     accent: '#2f8a5b',
     tint: '#e6f4ec',
     added: '2026-09-22',
@@ -336,6 +350,7 @@ export const games = [
     category: 'runner',
     tags: ['3D', 'Endless', 'Swipe controls'],
     orientation: 'portrait',
+    gameOver: [{ selector: 'button', text: '^\\s*run again\\s*$' }],
     accent: '#b5462b',
     tint: '#f8ebe5',
     added: '2026-09-17',
@@ -372,6 +387,7 @@ export const games = [
     category: 'puzzle',
     tags: ['Words', 'Falling blocks', 'Swipe controls'],
     orientation: 'portrait',
+    gameOver: [{ selector: 'button', text: '^\\s*play again\\s*$' }],
     accent: '#e5483b',
     tint: '#fdeceb',
     added: '2026-09-15',

@@ -125,7 +125,7 @@ function initPlayer(player, slug, title) {
     const payload = message.payload ?? {}
     if (message.type === 'ready') {
       frame.contentWindow.postMessage({ source: 'ai-arcade', version: 1, type: 'hello', payload: { mode } }, gameOrigin)
-    } else if (message.type === 'score' && Number.isFinite(payload.score)) {
+    } else if ((message.type === 'score' || message.type === 'game-over') && Number.isFinite(payload.score)) {
       api.reportScore(slug, payload.score, payload.mode ?? mode)
       showMyBest(slug)
       toast(`Score recorded: ${full(payload.score)}`)
