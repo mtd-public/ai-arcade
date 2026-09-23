@@ -3,11 +3,6 @@ import { adSlot, cabinet, coin, gameCard, icon } from './components.mjs'
 
 const steps = (ctx) => [
   {
-    icon: 'idea',
-    title: 'Start from a classic',
-    body: "Every game begins as a short design doc: an arcade classic to riff on (Crazy Taxi, Marble Madness, Flappy Bird, Paperboy), one twist that makes it new, and controls that work with a thumb or two on a phone.",
-  },
-  {
     icon: 'chat',
     title: 'Build it with an AI pair programmer',
     body: `The code is written in conversation with AI coding agents (${ctx.aiToolsText}), then playtested and tuned over many rounds. The art is procedural too: the 3D models, pixel sprites and sound effects are generated in code rather than drawn or recorded.`,

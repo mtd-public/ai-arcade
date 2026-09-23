@@ -1121,9 +1121,10 @@ a:hover {
 /* How it's made */
 .steps {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
-  margin: 0;
+  max-width: 880px;
+  margin: 0 auto;
   padding: 0;
   list-style: none;
 }
