@@ -1,18 +1,8 @@
 import { html } from './html.mjs'
-import { adSlot, cabinet, coin, gameCard, icon } from './components.mjs'
+import { adSlot, cabinet, categoryBadge, coin, emptyState, feedItem, icon, trendingCard, voteBox } from './components.mjs'
+import { SORTS, sortGames } from '../static/js/ranking.js'
 
-const steps = (ctx) => [
-  {
-    icon: 'chat',
-    title: 'Build it with an AI pair programmer',
-    body: `The code is written in conversation with AI coding agents (${ctx.aiToolsText}), then playtested and tuned over many rounds. The art is procedural too: the 3D models, pixel sprites and sound effects are generated in code rather than drawn or recorded.`,
-  },
-  {
-    icon: 'rocket',
-    title: 'Ship it as a web page',
-    body: 'Each game is a static web page. There is nothing to install, no account to make, and the same build runs on phones, tablets and desktops.',
-  },
-]
+const sortIcons = { hot: 'fire', new: 'sparkle', top: 'star', played: 'chart', az: 'sortAz' }
 
 const faqs = (ctx) => [
   {
@@ -20,119 +10,187 @@ const faqs = (ctx) => [
     a: html`Yes. Every game is free to play right in your browser, with no downloads, accounts or in-app purchases.`,
   },
   {
+    q: 'How do games get to the top?',
+    a: html`<strong>Hot</strong> ranks games on the last seven days of votes, plays and comments, on a scale that lets popular games rise without one hit burying everything, plus a boost for brand-new games that fades over two weeks. <strong>Top</strong> and <strong>Most played</strong> count all time. Voting works now; play counts and comments arrive with accounts.`,
+  },
+  {
+    q: 'Can I submit my own game?',
+    a: html`Yes, if you made it (with AI help or not) and it runs in a browser. Submissions open soon. You can prepare yours on the <a href="${ctx.href('submit/')}">submit page</a> today, and read the <a href="${ctx.href('guidelines/')}">guidelines</a> first.`,
+  },
+  {
+    q: 'What are AI co-pilot and co-op modes?',
+    a: html`Two ways to play with an AI. <strong>Co-pilot</strong> watches your run and suggests what to do next. <strong>Co-op</strong> puts an AI in control of player two. Each game switches them on once it supports them; you'll see the modes above the player on its page.`,
+  },
+  {
     q: 'Do they work on my phone?',
     a: html`They're designed for phones first, with on-screen thumbsticks and buttons, and most also support a keyboard on desktop. Each game page lists its controls.`,
   },
   {
-    q: 'Where are my high scores saved?',
-    a: html`Games that remember a best score keep it in your browser's local storage on your own device. Nothing is sent to a server, and clearing your browser data resets it.`,
-  },
-  {
-    q: 'What does "built with AI" mean here?',
-    a: html`Each game's code was written with AI coding assistants (${ctx.aiToolsText}), directed, reviewed and playtested by a human designer. <a href="${ctx.href('about/')}">Read more about how the arcade is made.</a>`,
+    q: 'Where are my votes and saved games kept?',
+    a: html`In your browser, on this device, until accounts launch. Nothing is sent to a server. See the <a href="${ctx.href('privacy/')}">privacy policy</a>.`,
   },
 ]
 
+function spotlight(ctx) {
+  const featured = ctx.games.filter((g) => g.featured)
+  if (!featured.length) return ''
+  return html`
+    <div class="carousel" data-carousel aria-roledescription="carousel" aria-label="Featured games">
+      ${featured.map((game, i) => {
+        const url = ctx.href(`games/${game.slug}/`)
+        return html`
+          <article class="slide" data-slide aria-roledescription="slide" aria-label="${i + 1} of ${featured.length}: ${game.title}"${i ? html` hidden` : ''} style="--accent: ${game.accent}; --tint: ${game.tint}">
+            <a class="slide__cabinet" href="${url}" tabindex="-1" aria-hidden="true">${cabinet(ctx, game, { door: true, eager: i === 0 })}</a>
+            <div class="slide__body">
+              <p class="slide__kicker"><span class="pill pill--gold">${icon('star', 14)} Featured</span> ${categoryBadge(ctx, game)}</p>
+              <h2 class="slide__title"><a href="${url}">${game.title}</a></h2>
+              <p class="slide__tagline">${game.tagline}</p>
+              <div class="slide__meta">
+                ${voteBox(game, { size: 'inline' })}
+                <span>by ${game.creator.name}</span>
+                ${game.achievements.length > 0 && html`<span>${icon('trophy', 15)} ${game.achievements.length} achievements</span>`}
+                <span>${icon('image', 15)} ${game.screenshots.length} screenshots</span>
+              </div>
+              <div class="slide__actions">
+                <a class="btn btn--gold" href="${url}#play">${icon('play', 17)} Play now</a>
+                <a class="btn btn--dark" href="${url}">Game page ${icon('chevron', 16)}</a>
+              </div>
+            </div>
+            <div class="slide__shots" aria-hidden="true">
+              ${game.screenshots.slice(0, 2).map(
+                (shot) => html`<a href="${url}#media" tabindex="-1"><img src="${ctx.asset(shot.src)}" alt="" width="${shot.width}" height="${shot.height}" loading="lazy" decoding="async" /></a>`,
+              )}
+            </div>
+          </article>`
+      })}
+      ${featured.length > 1 &&
+      html`<div class="carousel__controls">
+        <button class="carousel__arrow" type="button" data-carousel-prev aria-label="Previous featured game">${icon('chevronLeft', 20)}</button>
+        <div class="carousel__dots">
+          ${featured.map(
+            (game, i) => html`<button class="carousel__dot" type="button" data-carousel-dot="${i}" aria-label="Show ${game.title}" aria-current="${i === 0 ? 'true' : 'false'}"><img src="${ctx.asset(game.cover)}" alt="" width="600" height="800" loading="lazy" /></button>`,
+          )}
+        </div>
+        <button class="carousel__arrow" type="button" data-carousel-next aria-label="Next featured game">${icon('chevron', 20)}</button>
+      </div>`}
+    </div>`
+}
+
 export function homePage(ctx) {
-  const { games, categories, site } = ctx
-  const featured = games.filter((g) => g.featured).slice(0, 3)
-  const counts = Object.keys(categories)
+  const { games, categories } = ctx
+  const ranked = sortGames(games, ctx.community, 'hot', ctx.now)
+  const genres = Object.keys(categories)
     .map((key) => ({ key, label: categories[key], count: games.filter((g) => g.category === key).length }))
     .filter((c) => c.count > 0)
-  const randomTargets = games.map((g) => ctx.href(`games/${g.slug}/`)).join(' ')
 
   return html`
-    <section class="hero">
-      <div class="container hero__inner">
-        <div class="hero__copy">
+    <section class="spotlight" aria-labelledby="spotlight-title">
+      <div class="container spotlight__inner">
+        <div class="spotlight__intro">
           <p class="hud">
             <span class="hud__item"><span class="hud__label">1UP</span><span class="hud__value">000000</span></span>
             <span class="hud__item"><span class="hud__label">Games</span><span class="hud__value">${String(games.length).padStart(2, '0')}</span></span>
             <span class="hud__item hud__blink">Free play</span>
           </p>
-          <p class="hero__eyebrow">${site.tagline}</p>
-          <h1 class="hero__title">Pick a cabinet. Press start.</h1>
-          <p class="hero__lede">
-            Original arcade games you can play in a browser tab: submarine shooters, a marble run through Hell, an ambulance with a pizza habit, and more. Each one was designed by ${site.owner.name} and built with AI.
-          </p>
-          <div class="hero__actions">
-            <a class="btn btn--primary" href="#games">Browse games</a>
-            <a class="btn btn--ghost" href="#games" data-random="${randomTargets}">${coin(22)} Insert coin <span class="btn__note">random game</span></a>
-          </div>
+          <h1 id="spotlight-title" class="spotlight__title">The arcade for games made with AI</h1>
+          <p class="spotlight__lede">Play free in your browser, vote for your favorites, and watch the best games rise to the top.</p>
         </div>
-        <div class="hero__arcade" role="group" aria-label="Featured games">
-          <span class="hero__coin hero__coin--1">${coin(40)}</span>
-          <span class="hero__coin hero__coin--2">${coin(30)}</span>
-          <span class="hero__coin hero__coin--3">${coin(34)}</span>
-          ${featured.map(
-            (game, i) => html`
-              <a class="hero__cabinet hero__cabinet--${i + 1}" href="${ctx.href(`games/${game.slug}/`)}" aria-label="${game.title}">
-                ${cabinet(ctx, game, { eager: true, door: true })}
-              </a>`,
-          )}
-          <span class="hero__floor" aria-hidden="true"></span>
-        </div>
+        ${spotlight(ctx)}
       </div>
+      <span class="spotlight__floor" aria-hidden="true"></span>
     </section>
 
-    <section id="games" class="section games">
-      <div class="container">
-        <p class="section__eyebrow section__eyebrow--center" data-reveal>Stage 1 · Game select</p>
-        <h2 class="section__heading section__heading--center" data-reveal>All games</h2>
-
-        <div class="games__toolbar" data-reveal>
-          <div class="filters" role="group" aria-label="Filter by genre">
-            <button type="button" class="filter is-active" data-filter="all" aria-pressed="true">All <span class="filter__count">${games.length}</span></button>
-            ${counts.map(
-              (c) => html`<button type="button" class="filter" data-filter="${c.key}" aria-pressed="false">${c.label} <span class="filter__count">${c.count}</span></button>`,
-            )}
+    <div class="container portal" id="feed">
+      <div class="portal__main">
+        <div class="feed-head">
+          <h2 class="feed-head__title">All games <span class="feed-head__count" data-feed-count>${games.length}</span></h2>
+          <div class="sort-tabs" role="group" aria-label="Sort games">
+            ${SORTS.map((sort) => {
+              const locked = sort.needsData && !ctx.hasData
+              return html`<button class="sort-tab${sort.id === 'hot' ? ' is-active' : ''}" type="button" data-sort="${sort.id}" aria-pressed="${sort.id === 'hot' ? 'true' : 'false'}" title="${locked ? `${sort.hint}. Arrives with community data.` : sort.hint}"${locked ? html` disabled data-needs-data` : ''}>${icon(sortIcons[sort.id], 16)} ${sort.label}${locked && html` ${icon('lock', 13)}`}</button>`
+            })}
           </div>
-          <label class="search">
-            <span class="visually-hidden">Search games</span>
-            ${icon('search', 18)}
-            <input type="search" placeholder="Search games" autocomplete="off" data-search />
+        </div>
+        <div class="feed-filters">
+          <label class="select">
+            <span class="visually-hidden">Genre</span>
+            <select data-genre>
+              <option value="all">All genres</option>
+              ${genres.map((g) => html`<option value="${g.key}">${g.label} (${g.count})</option>`)}
+            </select>
+            ${icon('chevronDown', 16)}
           </label>
+          <button class="chip" type="button" data-saved-filter aria-pressed="false">${icon('bookmark', 15)} Saved</button>
+          <p class="feed-status" data-feed-status aria-live="polite"></p>
+          <div class="view-toggle" role="group" aria-label="Layout">
+            <button type="button" data-view="list" aria-pressed="true" aria-label="List view" title="List view">${icon('list', 18)}</button>
+            <button type="button" data-view="grid" aria-pressed="false" aria-label="Cabinet view" title="Cabinet view">${icon('grid', 18)}</button>
+          </div>
         </div>
 
-        <p class="games__status" aria-live="polite" data-results></p>
-        <div class="games__grid" data-grid>
-          ${games.map((game, i) => gameCard(ctx, game, { eager: i < 4 }))}
+        <ol class="feed feed--list" data-feed>
+          ${ranked.map((game, i) => feedItem(ctx, game, { rank: i + 1, eager: i < 3 }))}
+        </ol>
+        <div data-feed-empty hidden>
+          ${emptyState({
+            iconName: 'search',
+            title: 'No games match.',
+            body: 'Try another search or genre.',
+            action: html`<button class="btn btn--ghost btn--sm" type="button" data-feed-clear>Show all games</button>`,
+          })}
         </div>
-        <p class="games__empty" data-empty hidden>No games match that search. <button type="button" class="link-button" data-clear>Show all games</button></p>
 
         ${adSlot(ctx, 'homeFeed')}
       </div>
-    </section>
 
-    <section id="how" class="section how">
-      <div class="container">
-        <p class="section__eyebrow section__eyebrow--center" data-reveal>Stage 2 · Behind the screen</p>
-        <h2 class="section__heading section__heading--center" data-reveal>How it's made</h2>
-        <ol class="steps">
-          ${steps(ctx).map(
-            (step, i) => html`
-              <li class="step" data-reveal>
-                <span class="step__icon">${icon(step.icon, 26)}</span>
-                <span class="step__number">Step ${i + 1}</span>
-                <h3 class="step__title">${step.title}</h3>
-                <p>${step.body}</p>
-              </li>`,
-          )}
-        </ol>
-      </div>
-    </section>
+      <aside class="portal__side" aria-label="More from the arcade">
+        <section class="side-card side-card--cta">
+          ${coin(44)}
+          <h2 class="side-card__heading">Made a game with AI?</h2>
+          <p>Put it in the arcade. Players vote the best games to the top, and you can share clips, achievements and your build kit.</p>
+          <a class="btn btn--gold" href="${ctx.href('submit/')}">${icon('upload', 17)} Submit your game</a>
+          <a class="side-card__link" href="${ctx.href('guidelines/')}">Read the guidelines</a>
+        </section>
+
+        ${trendingCard(ctx)}
+
+        <section class="side-card" data-players>
+          <h2 class="side-card__title">${icon('trophy', 18)} Top players <span class="sample-tag">Sample</span></h2>
+          <div data-players-body>
+            ${emptyState({ iconName: 'trophy', title: 'No scores yet', body: 'Leaderboards fill up once games start reporting scores.' })}
+          </div>
+          <a class="side-card__link" href="${ctx.href('leaderboards/')}">All leaderboards ${icon('chevron', 14)}</a>
+        </section>
+
+        <section class="side-card" data-featured-clip hidden>
+          <h2 class="side-card__title">${icon('film', 18)} Featured clip <span class="sample-tag">Sample</span></h2>
+          <div data-featured-clip-body></div>
+        </section>
+
+        <section class="side-card">
+          <h2 class="side-card__title">${icon('gamepad', 18)} Genres</h2>
+          <ul class="genre-list">
+            ${genres.map(
+              (g) => html`<li><a href="${ctx.href()}?genre=${g.key}#feed" data-genre-link="${g.key}"><span>${g.label}</span><span class="genre-list__count">${g.count}</span></a></li>`,
+            )}
+          </ul>
+        </section>
+
+        ${adSlot(ctx, 'homeSidebar', { className: 'ad-slot--side' })}
+      </aside>
+    </div>
 
     <section id="faq" class="section faq">
       <div class="container faq__inner">
-        <div class="faq__intro" data-reveal>
-          <p class="section__eyebrow">Stage 3 · Questions</p>
+        <div class="faq__intro">
+          <p class="section__eyebrow">Stage select · Questions</p>
           <h2 class="section__heading">Good to know</h2>
           <p>Something else on your mind? <a href="${ctx.href('contact/')}">Get in touch</a>.</p>
         </div>
         <div class="faq__list">
           ${faqs(ctx).map(
             (f) => html`
-              <details class="faq__item" data-reveal>
+              <details class="faq__item">
                 <summary>${f.q}</summary>
                 <p>${f.a}</p>
               </details>`,

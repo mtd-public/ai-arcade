@@ -1,6 +1,6 @@
 # AI Arcade
 
-A home for the browser games in [mtd-public](https://github.com/mtd-public), each designed by Michael Taddeucci and built with AI. Every game gets an arcade-cabinet card on the home page and its own page with a description, controls, and a player that runs the game right on the page.
+A home for the browser games in [mtd-public](https://github.com/mtd-public), each designed by grizzly-dev and built with AI. Every game gets an arcade-cabinet card on the home page and its own page with a description, controls, and a player that runs the game right on the page.
 
 ![AI Arcade](src/static/img/og/site.jpg)
 

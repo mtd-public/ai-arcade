@@ -1,25 +1,41 @@
-// The catalog. Each entry becomes a card on the home page and its own page at
-// /games/<slug>/. Games appear on the site in the order they're listed here.
+// The catalog. Each entry becomes a row in the home feed and its own page at
+// /games/<slug>/. The build checks every entry with the same rules the submit
+// form uses (src/static/js/game-schema.js) and stops with a clear message if
+// something required is missing.
 //
-// To add a game, copy an entry and fill it in. The build checks every entry
-// and stops with a clear message if a required field is missing. Field notes:
+// Catalog order is the tie-breaker when two games rank the same, and the order
+// for "Featured" in the home spotlight.
 //
 //   slug         URL name, lowercase-with-dashes. Usually the repo name.
 //   url          Where the game itself is hosted (its GitHub Pages address).
-//   repo         Source code link, for your reference. Not shown on the site.
+//   repo         Source code link, for your reference. Not shown on the site;
+//                share source publicly through `resources` instead.
 //   cover        Screenshot in src/static/img/games/, 600x800 (3:4 portrait).
 //                Optional: without one the card shows a coloured title plate.
 //   og           Social-share image in src/static/img/og/, 1200x630. Optional.
-//   category     One of the keys in `categories` below; drives the filter chips.
+//   screenshots  Gallery images in src/static/img/shots/ with their size and a
+//                caption. Any aspect ratio.
+//   category     One of the keys in `categories` below; drives the genre filter.
 //   orientation  'portrait' or 'landscape': the shape of the in-page player.
 //   embed        false to skip the in-page player and only link out, for games
 //                that need a whole tab (pointer lock, orientation lock, etc.).
-//   accent/tint  Card colours: a strong colour for the badge dot and a pale one
-//                for the badge background.
-//   added        YYYY-MM-DD. The three newest games (if under 30 days old) get a "New" badge.
+//   accent/tint  Card colours: a strong colour and a pale one.
+//   added        YYYY-MM-DD. Feeds the "New" sort, the "Hot" freshness boost,
+//                and the "New" badge on the three newest games.
+//   featured     true to put the game in the home page spotlight.
+//   creator      { name, url }. Defaults to the site owner.
 //   description  Paragraphs for the game page. Write these yourself: original,
 //                substantial text on each page is what AdSense reviewers look for.
 //   controls     Rows for the "How to play" table.
+//   achievements [{ id, title, description }] as defined in the game itself.
+//   ai           { copilot, coop }: true once the game supports AI co-pilot or
+//                co-op-with-AI play through the Arcade Bridge (docs/PORTAL.md).
+//   resources    The build kit, only if the creator chooses to share it:
+//                { source, license, files: [{ label, url }], tools, notes }.
+//                license is a key of LICENSES in game-schema.js.
+//
+// Community data (votes, plays, comments, clips, leaderboards) doesn't live
+// here: it comes from the community data source at runtime. See docs/PORTAL.md.
 
 export const categories = {
   shooter: 'Shooter',
@@ -40,6 +56,12 @@ export const games = [
     repo: 'https://github.com/mtd-public/gig-ambulance',
     cover: 'img/games/gig-ambulance.webp',
     og: 'img/og/gig-ambulance.jpg',
+    screenshots: [
+      { src: 'img/shots/gig-ambulance-1.webp', width: 945, height: 645, caption: 'The park, the roundabout and the beach road' },
+      { src: 'img/shots/gig-ambulance-2.webp', width: 420, height: 860, caption: 'Loading a patient outside the hospital' },
+      { src: 'img/shots/gig-ambulance-3.webp', width: 720, height: 960, caption: 'Racing down the main road' },
+      { src: 'img/shots/gig-ambulance-4.webp', width: 720, height: 960, caption: 'Start screen and controls' },
+    ],
     category: 'driving',
     tags: ['3D', 'Time attack', 'Touch + keyboard'],
     orientation: 'portrait',
@@ -75,6 +97,12 @@ export const games = [
     repo: 'https://github.com/mtd-public/labyrinth-larry',
     cover: 'img/games/labyrinth-larry.webp',
     og: 'img/og/labyrinth-larry.jpg',
+    screenshots: [
+      { src: 'img/shots/labyrinth-larry-1.webp', width: 420, height: 860, caption: 'The hellmouth exit at the bottom of a circle' },
+      { src: 'img/shots/labyrinth-larry-2.webp', width: 420, height: 860, caption: 'Hellraiser hooks in Leviathan\'s Chains' },
+      { src: 'img/shots/labyrinth-larry-3.webp', width: 420, height: 860, caption: 'Larry in his gyro-cage' },
+      { src: 'img/shots/labyrinth-larry-4.webp', width: 720, height: 960, caption: 'Start screen and rules' },
+    ],
     category: 'arcade',
     tags: ['3D', 'Physics', 'Touch + keyboard'],
     orientation: 'portrait',
@@ -108,6 +136,11 @@ export const games = [
     repo: 'https://github.com/mtd-public/sub-sinkers',
     cover: 'img/games/sub-sinkers.webp',
     og: 'img/og/sub-sinkers.jpg',
+    screenshots: [
+      { src: 'img/shots/sub-sinkers-1.webp', width: 960, height: 520, caption: 'A missile breaking the surface' },
+      { src: 'img/shots/sub-sinkers-2.webp', width: 960, height: 520, caption: 'Stage 1: Sunlit Shallows' },
+      { src: 'img/shots/sub-sinkers-3.webp', width: 960, height: 520, caption: 'Stage select' },
+    ],
     category: 'shooter',
     tags: ['Pixel art', 'Boss fights', 'Landscape'],
     orientation: 'landscape',
@@ -143,6 +176,11 @@ export const games = [
     repo: 'https://github.com/mtd-public/finger-skater',
     cover: 'img/games/finger-skater.webp',
     og: 'img/og/finger-skater.jpg',
+    screenshots: [
+      { src: 'img/shots/finger-skater-1.webp', width: 900, height: 480, caption: 'Weaving through toy-town traffic' },
+      { src: 'img/shots/finger-skater-2.webp', width: 390, height: 780, caption: 'Grinding a rail with the balance meter' },
+      { src: 'img/shots/finger-skater-3.webp', width: 720, height: 960, caption: 'Start screen and controls' },
+    ],
     category: 'sports',
     tags: ['3D', 'Endless', 'Tricks'],
     orientation: 'portrait',
@@ -177,6 +215,11 @@ export const games = [
     repo: 'https://github.com/mtd-public/space-lion',
     cover: 'img/games/space-lion.webp',
     og: 'img/og/space-lion.jpg',
+    screenshots: [
+      { src: 'img/shots/space-lion-1.webp', width: 960, height: 365, caption: 'Start screen, a tower exploding, the Sentinel, the Space Lion and game over' },
+      { src: 'img/shots/space-lion-2.webp', width: 720, height: 960, caption: 'Flying the purple-twilight space mat' },
+      { src: 'img/shots/space-lion-3.webp', width: 720, height: 960, caption: 'Start screen' },
+    ],
     category: 'shooter',
     tags: ['3D', 'Boss fights', 'Open world'],
     orientation: 'portrait',
@@ -208,6 +251,10 @@ export const games = [
     repo: 'https://github.com/mtd-public/splashy-fish',
     cover: 'img/games/splashy-fish.webp',
     og: 'img/og/splashy-fish.jpg',
+    screenshots: [
+      { src: 'img/shots/splashy-fish-1.webp', width: 720, height: 960, caption: 'Splashing against the current' },
+      { src: 'img/shots/splashy-fish-2.webp', width: 720, height: 960, caption: 'Start screen' },
+    ],
     category: 'arcade',
     tags: ['One button', 'Endless', '3D'],
     orientation: 'portrait',
@@ -238,6 +285,12 @@ export const games = [
     repo: 'https://github.com/mtd-public/dive-depths',
     cover: 'img/games/dive-depths.webp',
     og: 'img/og/dive-depths.jpg',
+    screenshots: [
+      { src: 'img/shots/dive-depths-1.webp', width: 480, height: 960, caption: 'The Kracken boss fight' },
+      { src: 'img/shots/dive-depths-2.webp', width: 480, height: 960, caption: 'The Warden' },
+      { src: 'img/shots/dive-depths-3.webp', width: 480, height: 960, caption: 'Deep in the trench' },
+      { src: 'img/shots/dive-depths-4.webp', width: 720, height: 960, caption: 'Early descent' },
+    ],
     category: 'shooter',
     tags: ['Pixel art', 'Endless', 'Boss fights'],
     orientation: 'portrait',
@@ -260,6 +313,12 @@ export const games = [
       'Deal with mines before they reach your depth.',
     ],
     builtWith: ['React', 'TypeScript', 'Canvas 2D', 'Vite'],
+    achievements: [
+      { id: 'krackenSlayer', title: 'Kracken Slayer', description: 'Defeat the Kracken.' },
+      { id: 'pacifism', title: 'Pacifism', description: 'Reach 10,000 leagues without shooting anything but a boss or its mines.' },
+      { id: 'laserMarathon', title: 'Laser Marathon', description: 'Keep the laser ultimate firing for 25 cumulative seconds in one dive.' },
+      { id: 'shotgunShakedown', title: 'Shotgun Shakedown', description: 'Keep the shotgun spread active for 15 cumulative seconds in one dive.' },
+    ],
   },
   {
     slug: 'prof-whip-dash',
@@ -270,6 +329,10 @@ export const games = [
     repo: 'https://github.com/mtd-public/prof-whip-dash',
     cover: 'img/games/prof-whip-dash.webp',
     og: 'img/og/prof-whip-dash.jpg',
+    screenshots: [
+      { src: 'img/shots/prof-whip-dash-1.webp', width: 720, height: 960, caption: 'Running the sacbé' },
+      { src: 'img/shots/prof-whip-dash-2.webp', width: 720, height: 960, caption: 'Three lanes, three boulders' },
+    ],
     category: 'runner',
     tags: ['3D', 'Endless', 'Swipe controls'],
     orientation: 'portrait',
@@ -302,6 +365,10 @@ export const games = [
     repo: 'https://github.com/mtd-public/word-drop',
     cover: 'img/games/word-drop.webp',
     og: 'img/og/word-drop.jpg',
+    screenshots: [
+      { src: 'img/shots/word-drop-1.webp', width: 720, height: 960, caption: 'Stacking letters mid-game' },
+      { src: 'img/shots/word-drop-2.webp', width: 720, height: 960, caption: 'Start screen' },
+    ],
     category: 'puzzle',
     tags: ['Words', 'Falling blocks', 'Swipe controls'],
     orientation: 'portrait',

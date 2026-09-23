@@ -14,9 +14,13 @@ import { fileURLToPath } from 'node:url'
 
 import site from '../site.config.mjs'
 import { categories, games } from '../src/data/games.mjs'
+import { sampleCommunity } from '../src/data/sample-community.mjs'
+import { validateGame } from '../src/static/js/game-schema.js'
+import { hasData } from '../src/static/js/ranking.js'
 import { layout } from '../src/templates/layout.mjs'
 import { homePage } from '../src/templates/home.mjs'
 import { gamePage } from '../src/templates/game.mjs'
+import { guidelinesPage, leaderboardsPage, submitPage } from '../src/templates/community.mjs'
 import { aboutPage, contactPage, notFoundPage, privacyPage } from '../src/templates/info.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -38,42 +42,29 @@ try {
   errors.push(`siteUrl / SITE_URL must be a full http(s) address like https://example.com, got "${siteUrl}"`)
 }
 
-// ---- Validate the catalog and ad settings ------------------------------------
+// ---- Validate the catalog with the same rules the submit form uses ----------
 
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-const DATE = /^\d{4}-\d{2}-\d{2}$/
 const seen = new Set()
-const isUrl = (value) => {
-  try {
-    return /^https?:$/.test(new URL(value).protocol)
-  } catch {
-    return false
-  }
-}
+const fileExists = (p) => existsSync(path.join(staticDir, p))
 
 for (const [i, game] of games.entries()) {
   const where = `games[${i}]${game.slug ? ` (${game.slug})` : ''}`
-  const need = (field, ok, hint) => ok || errors.push(`${where}: ${field} ${hint}`)
-  need('slug', SLUG.test(game.slug ?? ''), 'must be lowercase-with-dashes')
-  need('slug', !seen.has(game.slug), 'is used twice')
+  if (seen.has(game.slug)) errors.push(`${where}: slug is used twice`)
   seen.add(game.slug)
-  need('title', typeof game.title === 'string' && game.title.trim(), 'is required')
-  need('tagline', typeof game.tagline === 'string' && game.tagline.trim(), 'is required')
-  need('url', isUrl(game.url), 'must be a full http(s) address')
-  need('repo', !game.repo || isUrl(game.repo), 'must be a full http(s) address')
-  need('category', game.category in categories, `must be one of: ${Object.keys(categories).join(', ')}`)
-  need('description', Array.isArray(game.description) && game.description.length > 0, 'needs at least one paragraph')
-  need('orientation', ['portrait', 'landscape'].includes(game.orientation ?? 'portrait'), "must be 'portrait' or 'landscape'")
-  need('added', !game.added || DATE.test(game.added), 'must look like 2026-09-23')
-  for (const field of ['cover', 'og']) {
-    if (game[field]) need(field, existsSync(path.join(staticDir, game[field])), `file not found: src/static/${game[field]}`)
+  for (const issue of validateGame(game, { categories, fileExists })) {
+    ;(issue.level === 'error' ? errors : warnings).push(`${where}: ${issue.field} ${issue.message}`)
   }
+  // Defaults, so templates can rely on every field being present.
   game.orientation ??= 'portrait'
   game.accent ??= '#191333'
   game.tint ??= '#f3efe3'
-  if (!game.controls?.length) warnings.push(`${where}: no controls listed; the "How to play" table will be empty`)
-  if (game.description?.join(' ').split(/\s+/).length < 80)
-    warnings.push(`${where}: description is under 80 words; longer original text helps AdSense review`)
+  game.tags ??= []
+  game.controls ??= []
+  game.screenshots ??= []
+  game.achievements ??= []
+  game.resources ??= null
+  game.creator = { name: site.owner.name, url: site.owner.url, ...game.creator }
+  game.ai = { copilot: false, coop: false, ...game.ai }
 }
 
 const ads = { slots: {}, showPlaceholders: true, ...site.ads }
@@ -83,6 +74,21 @@ for (const [name, id] of Object.entries(ads.slots)) {
   if (id && !/^\d+$/.test(String(id))) errors.push(`ads.slots.${name} must be the numeric data-ad-slot ID from AdSense`)
 }
 if (site.contactEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(site.contactEmail)) errors.push('contactEmail is not a valid email address')
+if (site.portal?.apiBase && !/^https:\/\//.test(site.portal.apiBase)) errors.push('portal.apiBase must be an https:// address')
+
+// ---- Community data snapshot ---------------------------------------------------
+// The real numbers. Empty (generatedAt: null) until a backend or export job
+// fills in src/data/community.json. See docs/PORTAL.md.
+
+let community = {}
+try {
+  community = JSON.parse(await readFile(path.join(root, 'src/data/community.json'), 'utf8'))
+  for (const slug of Object.keys(community.games ?? {})) {
+    if (!seen.has(slug)) warnings.push(`community.json has stats for "${slug}", which isn't in the catalog`)
+  }
+} catch (error) {
+  errors.push(`src/data/community.json is not valid JSON: ${error.message}`)
+}
 
 if (errors.length) {
   console.error(`\nBuild failed:\n${errors.map((e) => `  ✖ ${e}`).join('\n')}\n`)
@@ -95,20 +101,36 @@ await rm(outDir, { recursive: true, force: true })
 await mkdir(outDir, { recursive: true })
 await cp(staticDir, outDir, { recursive: true })
 
-// Short content hashes for ?v= cache busting on the CSS and JS.
+const now = Date.now()
+await mkdir(path.join(outDir, 'data'), { recursive: true })
+await writeFile(path.join(outDir, 'data/community.json'), JSON.stringify(community))
+await writeFile(path.join(outDir, 'data/sample-community.json'), JSON.stringify(sampleCommunity(games, now)))
+
+// Cache busting. The CSS and images get a hash of their own content. The ES
+// modules all share one version (a hash of every script), appended to the
+// entry point and to every relative import inside them, so a change to any
+// module reaches browsers without a stale import chain.
+const hash = (buffer) => createHash('sha256').update(buffer).digest('hex').slice(0, 10)
 const hashes = {}
-for (const file of ['css/arcade.css', 'js/arcade.js', 'favicon.svg', 'apple-touch-icon.png']) {
+for (const file of ['css/arcade.css', 'favicon.svg', 'apple-touch-icon.png']) {
   const full = path.join(staticDir, file)
-  if (existsSync(full)) hashes[file] = createHash('sha256').update(await readFile(full)).digest('hex').slice(0, 10)
+  if (existsSync(full)) hashes[file] = hash(await readFile(full))
+}
+const jsFiles = (await readdir(path.join(outDir, 'js'), { recursive: true })).filter((f) => f.endsWith('.js')).sort()
+const jsVersion = hash(Buffer.concat(await Promise.all(jsFiles.map((f) => readFile(path.join(outDir, 'js', f))))))
+hashes['js/app.js'] = jsVersion
+for (const file of jsFiles) {
+  const full = path.join(outDir, 'js', file)
+  const source = await readFile(full, 'utf8')
+  await writeFile(full, source.replace(/((?:\bfrom|\bimport)\s*\(?\s*)(['"])(\.{1,2}\/[^'"?]+\.js)\2/g, `$1$2$3?v=${jsVersion}$2`))
 }
 
-const now = new Date()
 // The "New" badge goes on the most recently added games, if they're recent.
 const NEW_COUNT = 3
 const NEW_FOR_DAYS = 30
 const newest = new Set(
   games
-    .filter((g) => g.added && (now - new Date(`${g.added}T00:00:00Z`)) / 864e5 <= NEW_FOR_DAYS)
+    .filter((g) => g.added && (now - Date.parse(`${g.added}T00:00:00Z`)) / 864e5 <= NEW_FOR_DAYS)
     .sort((a, b) => b.added.localeCompare(a.added))
     .slice(0, NEW_COUNT)
     .map((g) => g.slug),
@@ -122,7 +144,10 @@ const ctx = {
   ads,
   base,
   siteUrl,
-  year: now.getUTCFullYear(),
+  now,
+  community,
+  hasData: hasData(community),
+  year: new Date(now).getUTCFullYear(),
   href,
   abs: (p = '') => `${siteUrl}/${p.replace(/^\/+/, '')}`,
   asset: (p) => href(p) + (hashes[p] ? `?v=${hashes[p]}` : ''),
@@ -134,20 +159,25 @@ const pages = [
   {
     page: {
       path: '',
+      name: 'home',
       title: site.name,
       description: site.description,
+      communityNotice: true,
       schema: {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
         name: site.name,
         url: ctx.abs(''),
         description: site.description,
+        potentialAction: { '@type': 'SearchAction', target: `${ctx.abs('')}?q={search_term_string}`, 'query-input': 'required name=search_term_string' },
       },
-      bodyClass: 'page-home',
     },
     content: homePage(ctx),
   },
   ...games.map((game) => gamePage(ctx, game)),
+  leaderboardsPage(ctx),
+  submitPage(ctx),
+  guidelinesPage(ctx),
   aboutPage(ctx),
   contactPage(ctx),
   privacyPage(ctx),
@@ -184,3 +214,4 @@ const count = (await readdir(outDir, { recursive: true })).filter((f) => f.endsW
 for (const w of warnings) console.warn(`  ! ${w}`)
 console.log(`Built ${count} pages for ${siteUrl}/ (base path ${base}) into ${path.relative(root, outDir) || '.'}/`)
 console.log(ads.client ? `AdSense on: ${ads.client}` : 'AdSense off (set ads.client in site.config.mjs to turn it on)')
+console.log(ctx.hasData ? `Community data from ${community.generatedAt}` : 'Community data: none yet (votes and saves stay on each device; ?preview=1 shows sample data)')

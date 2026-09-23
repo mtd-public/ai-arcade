@@ -1,19 +1,17 @@
 import { formatDate, html } from './html.mjs'
-import { coin, gameCard, icon } from './components.mjs'
+import { coin, feedItem, icon } from './components.mjs'
 
 // Shared frame for the text pages (About, Contact, Privacy).
 function textPage(eyebrow, title, lede, body) {
   return html`
-    <section class="section page">
-      <div class="container page__inner">
-        <header class="page__header">
-          <p class="section__eyebrow">${eyebrow}</p>
-          <h1 class="section__heading">${title}</h1>
-          ${lede && html`<p class="page__lede">${lede}</p>`}
-        </header>
-        <div class="prose page__body">${body}</div>
+    <section class="page-head">
+      <div class="container page-head__inner">
+        <p class="section__eyebrow">${eyebrow}</p>
+        <h1 class="page-head__title">${title}</h1>
+        ${lede && html`<p class="page-head__lede">${lede}</p>`}
       </div>
-    </section>`
+    </section>
+    <div class="container page-body prose">${body}</div>`
 }
 
 function contactLine(ctx) {
@@ -28,42 +26,59 @@ export function aboutPage(ctx) {
   const body = html`
     <h2>What this is</h2>
     <p>
-      ${site.name} is a small, growing collection of original browser games: ${games.length} so far, from a pixel-art submarine shooter to a word puzzle.
-      Every game is free, runs in any modern browser on a phone, tablet or computer, and needs no download, account or plug-in.
+      ${site.name} is a community arcade for browser games made with AI: ${games.length} so far, from a pixel-art submarine shooter to a word puzzle.
+      Every game is free, runs in any modern browser on a phone, tablet or computer, and needs no download or plug-in.
+    </p>
+    <p>
+      It works like the portals we grew up on. Players vote, and the games people actually love rise to the top of the feed.
+      Each game gets its own page with screenshots, gameplay clips, achievements, a leaderboard and comments, and creators can share the build kit behind it: the source code and the prompts and agent files they made it with.
     </p>
 
-    <h2>Who makes it</h2>
+    <h2>How the games are made</h2>
+    <div class="about-steps">
+      <div class="about-step">
+        <span class="about-step__icon">${icon('chat', 22)}</span>
+        <h3>Built with an AI pair programmer</h3>
+        <p>The code is written in conversation with AI coding agents (${ctx.aiToolsText}), then playtested and tuned over many rounds. The art is procedural too: 3D models, pixel sprites and sound effects are generated in code rather than drawn or recorded.</p>
+      </div>
+      <div class="about-step">
+        <span class="about-step__icon">${icon('rocket', 22)}</span>
+        <h3>Shipped as a web page</h3>
+        <p>Each game is a static web page. There's nothing to install and no account to make, and the same build runs on phones, tablets and desktops.</p>
+      </div>
+    </div>
+
+    <h2>Play with AI</h2>
+    <p>
+      Games will be able to switch on two AI play modes. <strong>Co-pilot</strong> watches your run and suggests what to do next. <strong>Co-op</strong> puts an AI in control of player two.
+      Games opt in through the Arcade Bridge, a small script that lets a game share its state with the arcade.
+    </p>
+
+    <h2>Who runs it</h2>
     <p>
       The arcade is designed and run by <a href="${site.owner.url}">${site.owner.name}</a>, a UI/UX developer who builds interfaces for a living and games for fun.
-      Each game starts as a design doc: which classic it riffs on, what the twist is, how it should feel under a thumb.
     </p>
 
-    <h2>How the games are built with AI</h2>
+    <h2>What's live today</h2>
     <p>
-      The code for every game is written with AI coding assistants (${ctx.aiToolsText}). A human sets the design, reviews the changes, playtests every build and decides what ships.
-      The AI does a lot of the typing. The decisions about what's fun, what's fair and what gets cut stay with the designer.
+      Every game, its page and the in-page player are live. Voting and saving work now and are kept on your device.
+      Accounts, comments, submissions, clips and leaderboards are on the way; you can <a href="${ctx.href()}?preview=1">preview them with sample data</a>.
     </p>
-    <p>
-      The art is made the same way. Instead of drawn sprites or bought asset packs, the games generate their models, textures, pixel art and sound effects in code, or with scripts that drive Blender.
-      That keeps every game small, fast to load, and entirely original.
-    </p>
-
-    <h2>What's next</h2>
-    <p>New games are added as they're finished. The newest ones get a "New" badge on the <a href="${ctx.href()}#games">home page</a>.</p>
 
     <p class="page__cta">
-      <a class="btn btn--primary" href="${ctx.href()}#games">Browse the games</a>
-      <a class="btn btn--ghost" href="${ctx.href('contact/')}">Contact</a>
+      <a class="btn btn--primary" href="${ctx.href()}#feed">Browse the games</a>
+      <a class="btn btn--ghost" href="${ctx.href('submit/')}">${icon('upload', 17)} Submit a game</a>
     </p>`
 
   return {
     page: {
       path: 'about/',
+      name: 'about',
       title: 'About',
-      description: `Who makes ${site.name}, and how its games are designed by a person and built with AI coding assistants.`,
+      description: `What ${site.name} is, how its games are made with AI, and what's coming next.`,
       schema: { '@context': 'https://schema.org', '@type': 'AboutPage', name: `About ${site.name}`, url: ctx.abs('about/') },
     },
-    content: textPage('About', `About ${site.name}`, `Original arcade games, designed by a person and built with AI.`, body),
+    content: textPage('About', `About ${site.name}`, 'A community arcade for games made with AI.', body),
   }
 }
 
@@ -89,14 +104,18 @@ export function contactPage(ctx) {
     <h2>Found a bug in a game?</h2>
     <p>Let us know which game, what device and browser you were on, and what happened, using one of the options above.</p>
 
+    <h2>Reporting content</h2>
+    <p>If a game, clip or comment breaks the <a href="${ctx.href('guidelines/')}">community guidelines</a>, tell us which page it's on and what's wrong.</p>
+
     <h2>Business and advertising</h2>
     <p>For anything else, including privacy questions about this site, ${contactLine(ctx)}.</p>`
 
   return {
     page: {
       path: 'contact/',
+      name: 'contact',
       title: 'Contact',
-      description: `How to get in touch with ${site.name}: questions, bug reports and privacy requests.`,
+      description: `How to get in touch with ${site.name}: questions, bug reports, content reports and privacy requests.`,
     },
     content: textPage('Contact', 'Get in touch', 'Questions, bug reports and ideas are all welcome.', body),
   }
@@ -130,22 +149,37 @@ export function privacyPage(ctx) {
 
     <p>
       This policy explains what information ${site.name} (${ctx.abs('')}) collects when you visit, and what choices you have.
-      The short version: there are no accounts, no forms and no tracking of your gameplay by this site.
+      The short version: there are no accounts yet, and the few things the site remembers for you stay in your own browser.
     </p>
 
     <h2>What this site collects</h2>
     <p>
-      ${site.name} has no user accounts, sign-up forms or comments, and does not ask you for personal information.
-      The site itself doesn't set cookies.
+      ${site.name} doesn't have user accounts yet and doesn't ask you for personal information. The site itself doesn't set cookies.
     </p>
     <p>
       Like any website, the hosting provider receives technical information each time a page is requested, such as your IP address, browser type and the page you asked for, and may keep it in server logs for security and reliability.
     </p>
 
-    <h2>Games and local storage</h2>
+    <h2>What your browser keeps for you</h2>
     <p>
-      The games are hosted on GitHub Pages and some load inside this site in a frame. Games that remember a best score or your settings save them in your browser's local storage, on your device.
-      That data isn't sent to a server, and clearing your browser's site data removes it.
+      Community features that work before accounts launch save their data in your browser's local storage, on your device only: your votes, saved games,
+      submission drafts, and the best scores and achievement unlocks that games report while you play here. Preview mode is remembered for the browser tab you turned it on in.
+      None of this is sent to a server, and clearing your browser's site data removes it.
+    </p>
+
+    <h2>Games</h2>
+    <p>
+      The games are hosted separately (currently on GitHub Pages) and load inside this site in a frame when you press play. Games that remember a best score or your settings save them in your browser, on your device.
+    </p>
+
+    <h2>Gameplay videos</h2>
+    <p>
+      Gameplay clips from YouTube use YouTube's privacy-enhanced mode (youtube-nocookie.com) and only load when you press play on one. From then on, <a href="https://policies.google.com/privacy">Google's privacy policy</a> applies to that video.
+    </p>
+
+    <h2>Coming soon: accounts and submissions</h2>
+    <p>
+      When accounts, comments and game submissions launch, they'll need a display name and an email address. This policy will be updated to explain exactly what's collected and why before any of that goes live.
     </p>
 
     <h2>Fonts</h2>
@@ -172,8 +206,9 @@ export function privacyPage(ctx) {
   return {
     page: {
       path: 'privacy/',
+      name: 'privacy',
       title: 'Privacy policy',
-      description: `What ${site.name} collects when you visit, how ads and cookies work here, and your choices.`,
+      description: `What ${site.name} collects when you visit, what your browser keeps, how ads and cookies work here, and your choices.`,
     },
     content: textPage('Legal', 'Privacy policy', null, body),
   }
@@ -184,13 +219,14 @@ export function notFoundPage(ctx) {
   return {
     page: {
       path: '404.html',
+      name: '404',
       title: 'Page not found',
       description: 'That page is not in the arcade.',
       noindex: true,
       ads: false,
     },
     content: html`
-      <section class="section page not-found">
+      <section class="section not-found">
         <div class="container">
           <div class="not-found__screen">
             <p class="not-found__over">Game over</p>
@@ -198,11 +234,12 @@ export function notFoundPage(ctx) {
             <p class="not-found__code">Error 404 · page not found</p>
           </div>
           <h1 class="section__heading section__heading--center not-found__title">That page isn't in the arcade</h1>
-          <p class="page__lede not-found__lede">It may have moved, or the link has a typo. Try one of these cabinets instead.</p>
-          <div class="games__grid games__grid--related">
-            ${picks.map((g) => gameCard(ctx, g, { headingLevel: 2 }))}
-          </div>
+          <p class="page-head__lede not-found__lede">It may have moved, or the link has a typo.</p>
           <p class="not-found__home"><a class="btn btn--primary" href="${ctx.href()}">${coin(22)} Insert coin to continue</a></p>
+          <h2 class="section-title not-found__picks">Or try one of these</h2>
+          <ol class="feed feed--grid feed--related">
+            ${picks.map((g) => feedItem(ctx, g))}
+          </ol>
         </div>
       </section>`,
   }

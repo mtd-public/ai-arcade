@@ -1,6 +1,7 @@
 // Builds the site twice, once for a GitHub Pages project path and once for a
 // root domain, then checks every page: internal links and assets resolve, and
-// each page has a title, description, canonical URL and a single <h1>.
+// each page has a title, description, canonical URL and a single <h1>. Also
+// checks that the two copies of the dark theme tokens in arcade.css match.
 // Run with `npm run check`. CI runs it before deploying.
 
 import { spawnSync } from 'node:child_process'
@@ -57,7 +58,7 @@ for (const { name, siteUrl } of targets) {
 
     for (const [, attr, url] of markup.matchAll(/\s(href|src|data-random)="([^"]*)"/g)) {
       for (const link of attr === 'data-random' ? url.split(' ') : [url]) {
-        if (!link || /^(https?:|mailto:|#|data:)/.test(link)) continue
+        if (!link || /^(https?:|mailto:|#|data:|\?)/.test(link)) continue // external, in-page or same-page query
         if (!resolves(link)) problems.push(`${page}: broken ${attr} ${link}`)
       }
     }
@@ -75,6 +76,18 @@ for (const { name, siteUrl } of targets) {
 }
 
 await rm(path.join(root, '.check'), { recursive: true, force: true })
+
+// Dark theme tokens are listed twice in arcade.css (the toggle's explicit
+// choice, and the system setting); the two lists must match.
+const css = await readFile(path.join(root, 'src/static/css/arcade.css'), 'utf8')
+const tokenList = (re) => (css.match(re)?.[1] ?? '').split('\n').map((l) => l.trim()).filter(Boolean)
+const explicitDark = tokenList(/:root\[data-theme='dark'\] \{\n([^}]*)\}/)
+const systemDark = tokenList(/:root:not\(\[data-theme='light'\]\) \{\n([^}]*)\}/)
+if (!explicitDark.length || explicitDark.join('\n') !== systemDark.join('\n')) {
+  problems.push("arcade.css: the dark tokens under :root[data-theme='dark'] and the prefers-color-scheme block differ")
+} else {
+  console.log(`  ✓ dark theme: ${explicitDark.length} tokens, both lists match`)
+}
 
 if (problems.length) {
   console.error(`\n${problems.length} problem(s):\n${problems.map((p) => `  ✖ ${p}`).join('\n')}\n`)
