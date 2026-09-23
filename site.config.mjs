@@ -24,7 +24,6 @@ export default {
     name: 'Michael Taddeucci',
     // Linked from the footer and the About page.
     url: 'https://mtd-public.github.io/modern-portfolio/',
-    github: 'https://github.com/mtd-public',
   },
 
   // Shown on the Contact and Privacy pages. Leave empty to point people at

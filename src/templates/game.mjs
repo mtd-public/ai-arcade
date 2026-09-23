@@ -135,8 +135,6 @@ export function gamePage(ctx, game) {
             <div><dt>Made with AI</dt><dd>${ctx.aiToolsText}</dd></div>
             ${game.added && html`<div><dt>Added</dt><dd><time datetime="${game.added}">${formatDate(game.added)}</time></dd></div>`}
           </dl>
-          ${game.repo &&
-          html`<a class="btn btn--ghost btn--small facts__source" href="${game.repo}" target="_blank" rel="noopener">${icon('code', 18)} Source on GitHub</a>`}
         </aside>
       </div>
 

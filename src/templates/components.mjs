@@ -12,7 +12,6 @@ const paths = {
   search: html`<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>`,
   chevron: html`<path d="m9 6 6 6-6 6"/>`,
   mail: html`<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>`,
-  code: html`<path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/>`,
   chat: html`<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/>`,
   rocket: html`<path d="M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9-.8-.8-2.1-.8-2.9-.1Z"/><path d="M12 15 9 12a22 22 0 0 1 2-4A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2Z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>`,
   phone: html`<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>`,
@@ -36,9 +35,6 @@ export function siteHeader(ctx) {
       <div class="site-header__bar container">
         <div class="site-header__brand-group">
           <a href="${ctx.href()}" class="site-header__brand">${site.name}</a>
-          <a href="${site.owner.github}" class="site-header__meta-link" target="_blank" rel="noopener">
-            ${icon('github', 16)} GitHub
-          </a>
         </div>
         <nav class="site-header__nav site-header__nav--desktop" aria-label="Main">
           ${navLinks(ctx).map((l) => html`<a href="${l.href}">${l.label}</a>`)}
@@ -51,8 +47,6 @@ export function siteHeader(ctx) {
       <nav id="mobile-nav" class="site-header__nav site-header__nav--mobile" aria-label="Main">
         ${navLinks(ctx).map((l) => html`<a href="${l.href}">${l.label}</a>`)}
         <a href="${ctx.href('contact/')}">Contact</a>
-        <div class="site-header__nav-divider"></div>
-        <a href="${site.owner.github}" target="_blank" rel="noopener">${icon('github', 18)} GitHub</a>
       </nav>
       <div class="scroll-progress" data-scroll-progress></div>
     </header>`

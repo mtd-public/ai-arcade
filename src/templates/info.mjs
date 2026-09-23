@@ -48,11 +48,6 @@ export function aboutPage(ctx) {
       That keeps every game small, fast to load, and entirely original.
     </p>
 
-    <h2>Open source</h2>
-    <p>
-      Every game's source code is public on <a href="${site.owner.github}">GitHub</a>, linked from its page here. If you're curious how a mechanic works, read the code, or open an issue if you find a bug.
-    </p>
-
     <h2>What's next</h2>
     <p>New games are added as they're finished. The newest ones get a "New" badge on the <a href="${ctx.href()}#games">home page</a>.</p>
 
@@ -92,7 +87,7 @@ export function contactPage(ctx) {
     </div>
 
     <h2>Found a bug in a game?</h2>
-    <p>Each game has its own repository, linked from the bottom of its page. Opening an issue there puts the report right next to the code. Say what device and browser you were on, and what happened.</p>
+    <p>Let us know which game, what device and browser you were on, and what happened, using one of the options above.</p>
 
     <h2>Business and advertising</h2>
     <p>For anything else, including privacy questions about this site, ${contactLine(ctx)}.</p>`
@@ -166,7 +161,7 @@ export function privacyPage(ctx) {
     </p>
 
     <h2>Links to other sites</h2>
-    <p>Pages here link to GitHub and other sites that have their own privacy policies. This policy covers ${site.name} only.</p>
+    <p>Some pages link to other sites, which have their own privacy policies. This policy covers ${site.name} only.</p>
 
     <h2>Changes</h2>
     <p>If this policy changes, the new version will be posted on this page with a new "last updated" date.</p>

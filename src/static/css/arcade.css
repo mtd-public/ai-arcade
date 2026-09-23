@@ -275,10 +275,19 @@ a:hover {
   position: sticky;
   top: 0;
   z-index: 50;
+  border-bottom: 1px solid rgba(236, 231, 219, 0.9);
+}
+
+/* The frosted background lives on a pseudo-element: a backdrop-filter on the
+   header itself would trap the full-screen mobile menu inside the header. */
+.site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: rgba(251, 250, 247, 0.82);
   -webkit-backdrop-filter: saturate(1.4) blur(14px);
   backdrop-filter: saturate(1.4) blur(14px);
-  border-bottom: 1px solid rgba(236, 231, 219, 0.9);
 }
 
 .scroll-progress {
@@ -330,16 +339,6 @@ a:hover {
 
 .site-header__brand:hover {
   color: var(--color-text);
-}
-
-.site-header__meta-link {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-accent-strong);
-  white-space: nowrap;
 }
 
 .site-header__nav--desktop {
@@ -1885,11 +1884,6 @@ a:hover {
   color: var(--color-text);
 }
 
-.facts__source {
-  width: 100%;
-  margin-top: 24px;
-}
-
 .related {
   padding: 88px 0 96px;
 }
@@ -2079,11 +2073,6 @@ a:hover {
     color: var(--color-text);
   }
 
-  .site-header__nav-divider {
-    height: 1px;
-    margin: 4px 0;
-    background: var(--color-border);
-  }
 }
 
 /* Responsive: phone */
@@ -2219,9 +2208,5 @@ a:hover {
 
   .site-footer__inner {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .site-header__meta-link {
-    display: none;
   }
 }

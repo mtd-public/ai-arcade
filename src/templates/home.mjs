@@ -10,7 +10,7 @@ const steps = (ctx) => [
   {
     icon: 'rocket',
     title: 'Ship it as a web page',
-    body: 'Each game is a static web page. There is nothing to install, no account to make, and the same build runs on phones, tablets and desktops. The source for every game is open on GitHub.',
+    body: 'Each game is a static web page. There is nothing to install, no account to make, and the same build runs on phones, tablets and desktops.',
   },
 ]
 
@@ -30,10 +30,6 @@ const faqs = (ctx) => [
   {
     q: 'What does "built with AI" mean here?',
     a: html`Each game's code was written with AI coding assistants (${ctx.aiToolsText}), directed, reviewed and playtested by a human designer. <a href="${ctx.href('about/')}">Read more about how the arcade is made.</a>`,
-  },
-  {
-    q: 'Can I see the code?',
-    a: html`Yes. Every game page links to its source on <a href="${ctx.site.owner.github}">GitHub</a>.`,
   },
 ]
 

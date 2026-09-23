@@ -6,7 +6,7 @@
 //
 //   slug         URL name, lowercase-with-dashes. Usually the repo name.
 //   url          Where the game itself is hosted (its GitHub Pages address).
-//   repo         Source code link, shown on the game page. Optional.
+//   repo         Source code link, for your reference. Not shown on the site.
 //   cover        Screenshot in src/static/img/games/, 600x800 (3:4 portrait).
 //                Optional: without one the card shows a coloured title plate.
 //   og           Social-share image in src/static/img/og/, 1200x630. Optional.
