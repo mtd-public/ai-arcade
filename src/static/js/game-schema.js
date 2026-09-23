@@ -94,6 +94,21 @@ export function validateGame(entry, { categories = {}, fileExists, submission = 
   if (entry.repo && !isHttpUrl(entry.repo)) error('repo', 'must be a full http(s) address')
   if (!(entry.category in categories)) error('category', `must be one of: ${Object.keys(categories).join(', ')}`)
   if (!['portrait', 'landscape', undefined].includes(entry.orientation)) error('orientation', "must be 'portrait' or 'landscape'")
+  // Discover mode's game-over detection: CSS selectors plus an optional pattern.
+  if (entry.gameOver !== undefined) {
+    if (!Array.isArray(entry.gameOver)) error('gameOver', 'must be a list of { selector, text } rules')
+    else
+      entry.gameOver.forEach((rule, i) => {
+        if (!text(rule?.selector)) error(`gameOver.${i}`, 'needs a CSS selector')
+        if (rule?.text !== undefined) {
+          try {
+            new RegExp(rule.text, 'i')
+          } catch {
+            error(`gameOver.${i}`, `text isn't a valid pattern: ${rule.text}`)
+          }
+        }
+      })
+  }
   if (entry.added && !DATE.test(entry.added)) error('added', 'must look like 2026-09-23')
 
   const tags = entry.tags ?? []

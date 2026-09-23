@@ -94,6 +94,10 @@ export function homePage(ctx) {
           </p>
           <h1 id="spotlight-title" class="spotlight__title">The arcade for games made with AI</h1>
           <p class="spotlight__lede">Play free in your browser, vote for your favorites, and watch the best games rise to the top.</p>
+          <p class="spotlight__cta">
+            <a class="btn btn--dark" href="${ctx.href('discover/')}">${icon('tv', 18)} Discover mode</a>
+            <span>One random game at a time</span>
+          </p>
         </div>
         ${spotlight(ctx)}
       </div>

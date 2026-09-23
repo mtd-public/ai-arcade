@@ -128,8 +128,12 @@ export const myVote = (slug) => votes()[slug] ?? 0
 
 // dir is 1 (up) or -1 (down). Voting the same way twice clears the vote.
 export async function vote(slug, dir) {
+  return setVote(slug, votes()[slug] === dir ? 0 : dir)
+}
+
+// Set a vote outright: 1, -1, or 0 to clear it.
+export async function setVote(slug, value) {
   const all = votes()
-  const value = all[slug] === dir ? 0 : dir
   if (value) all[slug] = value
   else delete all[slug]
   store.set('votes', all)
@@ -200,6 +204,86 @@ export function toggleSave(slug) {
   store.set('saved', [...saved])
   return saved.has(slug)
 }
+
+// ---- Discover mode ---------------------------------------------------------------
+// One random game at a time. Locally it's a shuffle of the catalog, kept for
+// the browser session so a reload doesn't repeat what you've just played.
+// With a backend, GET /discover/next picks instead: that's where new and
+// little-played games (and fresh submissions) get their boost.
+
+// Like `store`, but for this browser tab only (sessionStorage).
+const tab = {
+  get(key, fallback) {
+    try {
+      const value = sessionStorage.getItem(`arcade:${key}`)
+      return value == null ? fallback : JSON.parse(value)
+    } catch {
+      return fallback
+    }
+  },
+  set(key, value) {
+    try {
+      sessionStorage.setItem(`arcade:${key}`, JSON.stringify(value))
+    } catch {
+      // Not persisted; the shuffle just starts over next time.
+    }
+  },
+}
+
+function shuffle(list) {
+  const out = [...list]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
+
+// The next game after `current`, from `lineup` (the games on the page). Returns
+// { game, reshuffled }, where reshuffled means every game has had a turn.
+export async function nextDiscover(lineup, current = null) {
+  if (remote) {
+    const game = await request('GET', `/discover/next${current ? `?after=${encodeURIComponent(current)}` : ''}`)
+    return { game, reshuffled: false }
+  }
+  const bySlug = new Map(lineup.map((g) => [g.slug, g]))
+  let queue = tab.get('discover-queue', []).filter((slug) => bySlug.has(slug) && slug !== current)
+  let reshuffled = false
+  if (!queue.length) {
+    queue = shuffle([...bySlug.keys()].filter((slug) => slug !== current || bySlug.size === 1))
+    reshuffled = tab.get('discover-started', false)
+  }
+  const [slug, ...rest] = queue
+  tab.set('discover-queue', rest)
+  tab.set('discover-started', true)
+  return { game: bySlug.get(slug), reshuffled }
+}
+
+// A quick review from the end of a turn: true (recommend), false (not for me)
+// or null (take it back). It's also the player's vote, so it moves the game
+// in the Hot and Top rankings.
+export async function review(slug, recommend, { seconds } = {}) {
+  const all = store.get('reviews', {})
+  if (recommend === null) delete all[slug]
+  else all[slug] = { recommend, at: new Date().toISOString() }
+  store.set('reviews', all)
+  await setVote(slug, recommend === null ? 0 : recommend ? 1 : -1)
+  if (remote) request('POST', `/games/${slug}/reviews`, { recommend, source: 'discover', seconds }).catch(() => {})
+}
+
+export const myReview = (slug) => store.get('reviews', {})[slug]?.recommend ?? null
+
+// One Discover turn: how long it lasted and how it ended ('game-over' when the
+// arcade saw the game end, 'manual' when the player said so, 'skip' when they
+// changed the channel mid-run). Feeds discovery stats once there's a backend.
+export function recordTurn(slug, { seconds, ended, recommend = null }) {
+  const history = store.get('discover-history', [])
+  history.unshift({ slug, seconds, ended, recommend, at: new Date().toISOString() })
+  store.set('discover-history', history.slice(0, 40))
+  if (remote) request('POST', '/discover/turns', { slug, seconds, ended, recommend }).catch(() => {})
+}
+
+export const discoverHistory = () => store.get('discover-history', [])
 
 // ---- Accounts ------------------------------------------------------------------
 

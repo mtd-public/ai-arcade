@@ -22,6 +22,7 @@ import { homePage } from '../src/templates/home.mjs'
 import { gamePage } from '../src/templates/game.mjs'
 import { guidelinesPage, leaderboardsPage, submitPage } from '../src/templates/community.mjs'
 import { aboutPage, contactPage, notFoundPage, privacyPage } from '../src/templates/info.mjs'
+import { discoverPage } from '../src/templates/discover.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const staticDir = path.join(root, 'src/static')
@@ -175,6 +176,7 @@ const pages = [
     content: homePage(ctx),
   },
   ...games.map((game) => gamePage(ctx, game)),
+  discoverPage(ctx),
   leaderboardsPage(ctx),
   submitPage(ctx),
   guidelinesPage(ctx),

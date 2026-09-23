@@ -48,6 +48,12 @@ const paths = {
   gamepad: html`<path d="M6.5 8h11A4.5 4.5 0 0 1 22 12.5v1a3.5 3.5 0 0 1-6.3 2.1L14.5 14h-5l-1.2 1.6A3.5 3.5 0 0 1 2 13.5v-1A4.5 4.5 0 0 1 6.5 8Z"/><path d="M7 11v3M5.5 12.5h3M16 11.5h.01M18 13.5h.01"/>`,
   eye: html`<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>`,
   reply: html`<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v4"/>`,
+  tv: html`<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="m8.5 3 3.5 4 3.5-4"/>`,
+  thumbUp: html`<path d="M7 11v9H4.5a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z"/><path d="m7 11 3.8-6.6a2.1 2.1 0 0 1 3.9 1.4L14 10h5a2 2 0 0 1 2 2.4l-1.3 6A2 2 0 0 1 17.7 20H7"/>`,
+  thumbDown: html`<path d="M17 13V4h2.5a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1Z"/><path d="m17 13-3.8 6.6a2.1 2.1 0 0 1-3.9-1.4L10 14H5a2 2 0 0 1-2-2.4l1.3-6A2 2 0 0 1 6.3 4H17"/>`,
+  volume: html`<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z"/><path d="M15.5 9a4 4 0 0 1 0 6M18.2 6.3a7.8 7.8 0 0 1 0 11.4"/>`,
+  volumeOff: html`<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4Z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/>`,
+  next: html`<path d="M5 5.5v13l9-6.5Z"/><path d="M18 5.5v13"/>`,
   moon: html`<path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.8 6.8 0 0 0 10.7 10.7Z"/>`,
   sun: html`<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M5.3 18.7l1.5-1.5M17.2 6.8l1.5-1.5"/>`,
 }
@@ -68,6 +74,7 @@ export function brandMark(size = 30) {
 
 const mainNav = (ctx) => [
   { href: ctx.href(), label: 'Arcade', icon: 'gamepad', match: (p) => p === '' || p.startsWith('games/') },
+  { href: ctx.href('discover/'), label: 'Discover', icon: 'tv', match: (p) => p === 'discover/' },
   { href: ctx.href('leaderboards/'), label: 'Leaderboards', icon: 'trophy', match: (p) => p === 'leaderboards/' },
   { href: ctx.href('submit/'), label: 'Submit a game', icon: 'upload', match: (p) => p === 'submit/' },
   { href: ctx.href('guidelines/'), label: 'Guidelines', icon: 'file', match: (p) => p === 'guidelines/' },
@@ -157,6 +164,7 @@ export function siteFooter(ctx) {
           <h2>Arcade</h2>
           <a href="${ctx.href()}?sort=hot#feed">Hot games</a>
           <a href="${ctx.href()}?sort=new#feed">New games</a>
+          <a href="${ctx.href('discover/')}">Discover mode</a>
           <a href="${ctx.href('leaderboards/')}">Leaderboards</a>
         </nav>
         <nav class="site-footer__col" aria-label="Community">
