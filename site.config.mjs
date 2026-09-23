@@ -5,7 +5,7 @@ export default {
   name: 'AI Arcade',
   tagline: 'Free browser games built with AI',
   description:
-    'A free arcade of original browser games designed by Michael Taddeucci and built with AI coding assistants. No downloads, no sign-up: pick a game and press start.',
+    'A community arcade of free browser games made with AI. Play in your browser, vote for your favorites, and watch the best games rise to the top.',
 
   // The public address of the site, with no trailing slash. The build uses it
   // for canonical links, the sitemap and social cards, and takes the base path
@@ -21,7 +21,7 @@ export default {
   locale: 'en_US',
 
   owner: {
-    name: 'Michael Taddeucci',
+    name: 'grizzly-dev',
     // Linked from the footer and the About page.
     url: 'https://mtd-public.github.io/modern-portfolio/',
   },
@@ -38,6 +38,16 @@ export default {
   // The date the privacy policy last changed. Update it whenever you edit it.
   privacyUpdated: '2026-09-23',
 
+  // Community features: votes, comments, clips, leaderboards, submissions.
+  // See docs/PORTAL.md for the data format and the endpoints a backend needs.
+  portal: {
+    // Address of the community backend, e.g. 'https://api.example.com'.
+    // Empty means there isn't one yet: votes and saves stay on each visitor's
+    // device, community numbers come from src/data/community.json, and things
+    // that need accounts say "coming soon". ?preview=1 shows sample data.
+    apiBase: '',
+  },
+
   // Google AdSense. Everything stays off until `client` is set. See docs/ADSENSE.md
   // for the full sign-up, verification and approval walkthrough.
   ads: {
@@ -51,7 +61,8 @@ export default {
     // with an empty ID renders nothing. Leave them all empty if you only use
     // Auto ads.
     slots: {
-      homeFeed: '', // Home page, between the game grid and "How it's made"
+      homeFeed: '', // Home page, under the game feed
+      homeSidebar: '', // Home page, bottom of the sidebar (desktop)
       gameContent: '', // Game pages, after "How to play" (well clear of the game)
       gameFooter: '', // Game pages, below "More games"
     },
